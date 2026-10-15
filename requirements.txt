@@ -1,0 +1,6 @@
+pytest>=8,<9
+pytest-playwright
+allure-pytest
+requests
+pydantic>=2
+axe-playwright-python

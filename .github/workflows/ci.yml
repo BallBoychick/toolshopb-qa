@@ -1,0 +1,37 @@
+name: CI
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      SPRINT: sprint5
+      SUT_REF: main
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10.12"
+          cache: pip
+      - run: pip install -r requirements.txt && playwright install --with-deps chromium
+
+      - name: Start Toolshop
+        run: bash scripts/sut_up.sh
+
+      - name: API tests (fast feedback)
+        run: pytest -m api
+      - name: UI, hybrid, a11y tests
+        run: pytest -m "not api"
+
+      - name: Toolshop logs on failure
+        if: failure()
+        run: docker compose -f sut/docker-compose.yml logs --tail=200
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports
+          path: |
+            allure-results
+            test-results
