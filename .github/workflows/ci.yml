@@ -24,9 +24,12 @@ jobs:
       - name: UI, hybrid, a11y tests
         run: pytest -m "not api"
 
-      - name: Toolshop logs on failure
+      - name: Toolshop diagnostics
         if: failure()
-        run: docker compose -f sut/docker-compose.yml logs --tail=200
+        run: |
+          docker compose -f sut/docker-compose.yml ps
+          docker compose -f sut/docker-compose.yml logs --tail=100 composer
+          docker compose -f sut/docker-compose.yml exec -T laravel-api tail -n 50 storage/logs/laravel.log || true
 
       - uses: actions/upload-artifact@v4
         if: always()
